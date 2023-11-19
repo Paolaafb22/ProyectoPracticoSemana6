@@ -16,7 +16,7 @@ describe('AppController', () => {
 
   describe('root', () => {
     it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Prueba practica semana 6!');
+      expect(appController.getHello()).toBe('Prueba practica Diseño y construcción de APIs semana 6!');
     });
   });
 });
