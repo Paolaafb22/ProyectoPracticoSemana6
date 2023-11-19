@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  tienda-producto-db:
+    image: postgres:13-alpine
+    container_name: "tienda-producto-pg"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=tienda-producto
+    networks:
+      -  tienda-producto-net
+
+volumes:
+  postgres_data:
+
+networks:
+  tienda-producto-net:
+    driver: bridge
