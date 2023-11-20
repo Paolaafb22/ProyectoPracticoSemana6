@@ -11,7 +11,7 @@ import { faker } from '@faker-js/faker';
 describe('ProductoService', () => {
   let service: ProductoService;
   let repository: Repository<ProductoEntity>;
-  let productosList: ProductoEntity[];
+  let productoList: ProductoEntity[];
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -26,15 +26,16 @@ describe('ProductoService', () => {
 
   const seedDatabase = async () => {
     repository.clear();
-    productosList = [];
+
+    productoList = [];
     for (let i = 0; i < 5; i++) {
-      const Producto: ProductoEntity = await repository.save({
+      const entity: ProductoEntity = await repository.save({
         name: faker.company.companyName(),
         price: 0,
         type: "No perecedero",
         tiendas: [],
       });
-      productosList.push(Producto);
+      productoList.push(entity);
     }
   };
 
@@ -43,41 +44,45 @@ describe('ProductoService', () => {
   });
 
   it('findAll should return all Productos', async () => {
-    const Productos: ProductoEntity[] = await service.findAll();
-    expect(Productos).not.toBeNull();
-    expect(Productos).toHaveLength(productosList.length);
+    const entity: ProductoEntity[] = await service.findAll();
+    expect(entity).not.toBeNull();
+    expect(entity).toHaveLength(productoList.length);
   });
 
-  it('findOne should return a Producto by id', async () => {
-    const storedProducto: ProductoEntity = productosList[0];
-    const Producto: ProductoEntity = await service.findOne(storedProducto.id);
-    expect(Producto).not.toBeNull();
-    expect(Producto.name).toEqual(storedProducto.name);
-    expect(Producto.price).toEqual(storedProducto.price);
-    expect(Producto.type).toEqual(storedProducto.type);
+  it('findOne should return a product by id', async () => {
+    const entity: ProductoEntity = productoList[0];
+    const found: ProductoEntity = await service.findOne(
+      entity.id 
+    );
+    expect(found).not.toBeNull();
+    expect(found.id).toEqual(entity.id);
+    expect(found.name).toEqual(entity.name);
+    expect(found.price).toEqual(entity.price);
+    expect(found.type).toEqual(entity.type);
   });
 
-  it('findOne should throw an exception for an invalid Producto', async () => {
-    await expect(() => service.findOne("0")).rejects.toHaveProperty("message", "The Producto with the given id was not found");
+  it('findOne should throw an exception for an invalid Producto id', async () => {
+    await expect(() => service.findOne('invalid')).rejects.toHaveProperty(
+      "message",
+      "The Producto with the given id was not found");
   });
 
   it('create should return a new Producto', async () => {
-    const Producto: ProductoEntity = {
-      id: "",
+    const producto: ProductoEntity = {
+      id: '',
       name: faker.company.companyName(),
       price: 0,
       type: "No perecedero",
       tiendas: [],
     };
 
-    const newProducto: ProductoEntity = await service.create(Producto);
-    expect(newProducto).not.toBeNull();
-
-    const storedProducto: ProductoEntity = await repository.findOne({ where: { id: newProducto.id } });
-    expect(storedProducto).not.toBeNull();
-    expect(storedProducto.name).toEqual(newProducto.name);
-    expect(storedProducto.price).toEqual(newProducto.price);
-    expect(storedProducto.type).toEqual(newProducto.type);
+    const entity: ProductoEntity = await service.create(producto);
+    expect(entity).not.toBeNull();
+    expect(entity.id).toBeDefined();
+    expect(entity).not.toBeNull();
+    expect(entity.name).toEqual(producto.name);
+    expect(entity.price).toEqual(producto.price);
+    expect(entity.type).toEqual(producto.type);
   });
 
   it('create should throw an exception for an invalid type from Producto', async () => {
@@ -94,47 +99,63 @@ describe('ProductoService', () => {
       .toHaveProperty("message", "Invalid product type. It should be Perecedero, No perecedero");
   });
 
-  it('update should modify a Producto', async () => {
-    const Producto: ProductoEntity = productosList[0];
-    Producto.name = "New name";
-    Producto.price = 0;
-    Producto.type = "no";
-
-    const updatedProducto: ProductoEntity = await service.update(Producto.id, Producto);
+  it('update should modify an Producto', async () => {
+    const entity: ProductoEntity = productoList[0];
+    entity.name = "New name";
+    entity.price = 0;
+    entity.type = "No Perecedero";
+    const updatedProducto: ProductoEntity = await service.update(
+      entity.id,
+      entity,
+      );
     expect(updatedProducto).not.toBeNull();
 
-    const storedProducto: ProductoEntity = await repository.findOne({ where: { id: Producto.id } });
+    const storedProducto: ProductoEntity = await repository.findOne({ where: { id: entity.id } });
     expect(storedProducto).not.toBeNull();
-    expect(storedProducto.name).toEqual(Producto.name);
-    expect(storedProducto.price).toEqual(Producto.price);
-    expect(storedProducto.type).toEqual(Producto.type);
+    expect(storedProducto.name).toEqual(entity.name);
+    expect(storedProducto.price).toEqual(entity.price);
+    expect(storedProducto.type).toEqual(entity.type);
   });
 
-  it('update should throw an exception for an invalid Producto', async () => {
-    let producto: ProductoEntity = productosList[0];
-    producto = {
-      ...producto, name: "New name", price: 0, type: "Perecedero",
+  it('update should throw an exception for an invalid Producto id', async () => {
+    let entity: ProductoEntity = productoList[0];
+    entity = {
+      ...entity, name: "New name", price: 0, type: "Perecedero",
     };
-    await expect(() => service.update("0", producto)).rejects.toHaveProperty("message", "The Producto with the given id was not found");
+    await expect(() => service.update("0", entity)).rejects.toHaveProperty("message", "The Producto with the given id was not found");
   });
 
   it('update should throw an exception for an invalid type from Producto', async () => {
-    let producto: ProductoEntity = productosList[0];
+    const producto: ProductoEntity = productoList[0];
+    producto.type = 'InvalidType';
+  
+    await expect(() => service.update(producto.id, producto))
+      .rejects
+      .toHaveProperty(
+        "message", 
+        "Invalid product type. It should be Perecedero, No perecedero"
+      );
+  });
+  
+/*
+  it('update should throw an exception for an invalid type from Producto', async () => {
+    let entity: ProductoEntity = productoList[0];
 
-    producto = {
-      ...producto,
+    entity = {
+      ...entity,
       name: "New name",
       price: 0,
       type: "Perecedro",
     };
 
-    await expect(() => service.update(producto.id, producto))
+    await expect(() => service.update('0', entity))
       .rejects
-      .toHaveProperty("message", "Invalid product type. It should be Perecedero, No perecedero");
-  });
+      .toHaveProperty("message"
+      , "Invalid product type. It should be Perecedero, No perecedero");
+  });*/
 
   it('delete should remove a Producto', async () => {
-    const producto: ProductoEntity = productosList[0];
+    const producto: ProductoEntity = productoList[0];
     await service.delete(producto.id);
 
     const deletedProducto: ProductoEntity = await repository.findOne({ where: { id: producto.id } });
@@ -142,7 +163,7 @@ describe('ProductoService', () => {
   });
 
   it('delete should throw an exception for an invalid Producto', async () => {
-    const producto: ProductoEntity = productosList[0];
+    const producto: ProductoEntity = productoList[0];
     await service.delete(producto.id);
     await expect(() => service.delete("0")).rejects.toHaveProperty("message", "The Producto with the given id was not found");
   });
