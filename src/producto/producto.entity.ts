@@ -1,5 +1,6 @@
 import { ManyToMany, JoinTable } from 'typeorm';
-import { TiendaEntity } from 'src/tienda/tienda.entity';
+import { TiendaEntity } from '../tienda/tienda.entity';
+
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 /**
  * Un producto puede pertenecer a muchas tiendas, y a una tienda pueden pertenecer muchos productos.
@@ -11,11 +12,11 @@ id: string;
 
 @Column()
 name: string;
-
-@Column()
+@Column({ default: 13, nullable: true })
 price: number;
 
-@Column()
+//@Column()
+@Column({ default: "Pertenece", nullable: true })
 type: string;
 
 @ManyToMany(() => TiendaEntity, tienda => tienda.productos)
